@@ -181,6 +181,25 @@
     color: #1b1204; background: linear-gradient(135deg, var(--gold), var(--gold-2));
     padding: 5px 11px; border-radius: 999px; box-shadow: 0 6px 18px rgba(255, 138, 61, .4);
   }
+  .showcase {
+    position: relative; margin: 44px 0; padding: 28px; border-radius: 24px; overflow: hidden;
+    border: 1px solid rgba(46, 220, 220, .3);
+    background:
+      radial-gradient(600px 260px at 15% 0%, rgba(46, 220, 220, .16), transparent 70%),
+      radial-gradient(500px 260px at 90% 100%, rgba(94, 120, 255, .14), transparent 70%),
+      var(--bg-2);
+  }
+  .showcase-head { margin-bottom: 22px; }
+  .showcase-head h3 { font-size: clamp(24px, 3.4vw, 32px); margin: 10px 0 4px; }
+  .showcase-head p { margin: 0; color: var(--muted); }
+  .rbx {
+    display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+    color: #06292b; background: #2edcdc; padding: 4px 11px; border-radius: 999px;
+  }
+  .showcase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .showcase-grid .card { border-color: rgba(46, 220, 220, .25); }
+  .showcase-grid .media { aspect-ratio: 4 / 3.6; }
+  .showcase-grid .media img { object-fit: cover; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
 
   /* Payment / process */
@@ -241,12 +260,14 @@
     .stack { height: 420px; max-width: 560px; margin: 0 auto; width: 100%; }
     .grid4 { grid-template-columns: repeat(2, 1fr); }
     .process { grid-template-columns: 1fr; }
+    .showcase-grid { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 600px) {
     nav.links a:not(.cta) { display: none; }
     section { padding: 72px 0; }
     .stack { height: 330px; }
-    .grid4, .featured { grid-template-columns: 1fr; }
+    .grid4, .featured, .showcase-grid { grid-template-columns: 1fr; }
+    .showcase { padding: 18px; }
     .featured .media { aspect-ratio: 4 / 3.6; }
     .arrow { display: none; }
     .lb-prev, .lb-next { top: auto; bottom: 18px; transform: none; }
@@ -351,6 +372,14 @@
     <div class="group" data-group="bosses">
       <div class="group-title"><h3 class="display">Bosses</h3><span data-count="bosses"></span></div>
       <div class="featured" id="featured"></div>
+      <div class="showcase" id="showcase-wrap">
+        <div class="showcase-head">
+          <span class="rbx">Roblox</span>
+          <h3 class="display">Model Showcase in Roblox</h3>
+          <p>How the models look in-game, straight out of Roblox Studio.</p>
+        </div>
+        <div class="showcase-grid" id="showcase"></div>
+      </div>
       <div class="grid" id="bosses"></div>
     </div>
 
@@ -439,6 +468,10 @@
     { name: "Lava Axe",        img: "lava-axe.webp",       cat: "items" },
     { name: "Lava Club",       img: "lava-club.webp",      cat: "items" },
     { name: "Lava Portal",     img: "lava-portal.webp",    cat: "others" },
+    // Roblox in-game shots, shown in the "Model Showcase in Roblox" panel under Featured
+    { name: "Roblox showcase", img: "roblox-1.webp",       cat: "bosses", showcase: true },
+    { name: "Roblox showcase", img: "roblox-2.webp",       cat: "bosses", showcase: true },
+    { name: "Roblox showcase", img: "roblox-3.webp",       cat: "bosses", showcase: true },
   ];
   /* =========================================== */
 
@@ -466,17 +499,20 @@
     <div class="card reveal" data-i="${i}">
       ${m.featured ? '<span class="badge">Featured</span>' : ""}
       <div class="media" style="--img:url('img/${m.img}')"><img src="img/${m.img}" alt="${m.name}" loading="lazy"></div>
-      <span class="tag ${TAGS[m.cat][0]}">${TAGS[m.cat][1]}</span>
+      ${m.showcase ? "" : `<span class="tag ${TAGS[m.cat][0]}">${TAGS[m.cat][1]}</span>`}
     </div>`;
   const put = (id, list) => document.getElementById(id).innerHTML = list.map(m => card(m, MODELS.indexOf(m))).join("");
   put("featured", MODELS.filter(m => m.cat === "bosses" && m.featured));
-  put("bosses", MODELS.filter(m => m.cat === "bosses" && !m.featured));
+  put("showcase", MODELS.filter(m => m.showcase));
+  put("bosses", MODELS.filter(m => m.cat === "bosses" && !m.featured && !m.showcase));
+  if (!MODELS.some(m => m.showcase)) document.getElementById("showcase-wrap").remove();
   put("items", MODELS.filter(m => m.cat === "items"));
   put("others", MODELS.filter(m => m.cat === "others"));
   document.querySelectorAll(".group").forEach(g => { if (!MODELS.some(m => m.cat === g.dataset.group)) g.remove(); });
   if (!MODELS.some(m => m.featured)) document.getElementById("featured").remove();
 
-  const counts = { all: MODELS.length, bosses: MODELS.filter(m => m.cat === "bosses").length, items: MODELS.filter(m => m.cat === "items").length, others: MODELS.filter(m => m.cat === "others").length };
+  const models = MODELS.filter(m => !m.showcase);
+  const counts = { all: models.length, bosses: models.filter(m => m.cat === "bosses").length, items: models.filter(m => m.cat === "items").length, others: models.filter(m => m.cat === "others").length };
   document.querySelectorAll("[data-count]").forEach(el => {
     const n = counts[el.dataset.count];
     el.textContent = el.tagName === "SMALL" ? n : `${n} model${n === 1 ? "" : "s"}`;
