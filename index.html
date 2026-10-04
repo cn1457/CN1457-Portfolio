@@ -171,6 +171,7 @@
   .tag { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
   .tag.boss { color: #ff9b9b; background: rgba(255, 90, 90, .12); }
   .tag.item { color: var(--ice); background: rgba(94, 200, 255, .12); }
+  .tag.other { color: #c79bff; background: rgba(163, 91, 255, .14); }
 
   .featured { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
   .featured .media { aspect-ratio: 4 / 4.4; }
@@ -351,6 +352,7 @@
       <button class="tab on" data-filter="all">All <small data-count="all"></small></button>
       <button class="tab" data-filter="bosses">Bosses <small data-count="bosses"></small></button>
       <button class="tab" data-filter="items">Items <small data-count="items"></small></button>
+      <button class="tab" data-filter="others">Others <small data-count="others"></small></button>
     </div>
 
     <div class="group" data-group="bosses">
@@ -362,6 +364,11 @@
     <div class="group" data-group="items">
       <div class="group-title"><h3 class="display">Items</h3><span data-count="items"></span></div>
       <div class="grid" id="items"></div>
+    </div>
+
+    <div class="group" data-group="others">
+      <div class="group-title"><h3 class="display">Others</h3><span data-count="others"></span></div>
+      <div class="grid" id="others"></div>
     </div>
   </div>
 </section>
@@ -434,6 +441,7 @@
     { name: "Croc Brute",      img: "croc-brute.webp",     cat: "bosses" },
     { name: "Molten Chest",    img: "molten-chest.webp",   cat: "items" },
     { name: "Orrery Mace",     img: "orrery-mace.webp",    cat: "items" },
+    { name: "Lava Portal",     img: "lava-portal.webp",    cat: "others" },
   ];
   /* =========================================== */
 
@@ -456,19 +464,22 @@
   };
 
   // Build gallery
+  const TAGS = { bosses: ["boss", "Boss"], items: ["item", "Item"], others: ["other", "Other"] };
   const card = (m, i) => `
     <div class="card reveal" data-i="${i}">
       ${m.featured ? '<span class="badge">Featured</span>' : ""}
       <div class="media" style="--img:url('img/${m.img}')"><img src="img/${m.img}" alt="${m.name}" loading="lazy"></div>
-      <div class="info"><h4>${m.name}</h4><span class="tag ${m.cat === "bosses" ? "boss" : "item"}">${m.cat === "bosses" ? "Boss" : "Item"}</span></div>
+      <div class="info"><h4>${m.name}</h4><span class="tag ${TAGS[m.cat][0]}">${TAGS[m.cat][1]}</span></div>
     </div>`;
   const put = (id, list) => document.getElementById(id).innerHTML = list.map(m => card(m, MODELS.indexOf(m))).join("");
   put("featured", MODELS.filter(m => m.cat === "bosses" && m.featured));
   put("bosses", MODELS.filter(m => m.cat === "bosses" && !m.featured));
   put("items", MODELS.filter(m => m.cat === "items"));
+  put("others", MODELS.filter(m => m.cat === "others"));
+  document.querySelectorAll(".group").forEach(g => { if (!MODELS.some(m => m.cat === g.dataset.group)) g.remove(); });
   if (!MODELS.some(m => m.featured)) document.getElementById("featured").remove();
 
-  const counts = { all: MODELS.length, bosses: MODELS.filter(m => m.cat === "bosses").length, items: MODELS.filter(m => m.cat === "items").length };
+  const counts = { all: MODELS.length, bosses: MODELS.filter(m => m.cat === "bosses").length, items: MODELS.filter(m => m.cat === "items").length, others: MODELS.filter(m => m.cat === "others").length };
   document.querySelectorAll("[data-count]").forEach(el => {
     const n = counts[el.dataset.count];
     el.textContent = el.tagName === "SMALL" ? n : `${n} model${n === 1 ? "" : "s"}`;
